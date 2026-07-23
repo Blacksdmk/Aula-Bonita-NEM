@@ -1,0 +1,15 @@
+# Archivos de trabajo y entregables locales
+work/
+outputs/
+.agents/
+.codex/
+.openai/
+
+# Perfiles, registros y archivos del sistema
+*.log
+.DS_Store
+Thumbs.db
+
+# Si prefieres configurar Firebase durante el despliegue, puedes ignorar
+# web/firebase-config.js y generarlo con GitHub Actions. En esta primera
+# versión se mantiene en el repositorio porque la configuración web es pública.
