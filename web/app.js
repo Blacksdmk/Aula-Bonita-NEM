@@ -91,6 +91,7 @@ let searchTerm = "";
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const authDialog = $("#auth-dialog");
+const previewDialog = $("#preview-dialog");
 const toast = $("#toast");
 
 function showToast(message) {
@@ -141,9 +142,12 @@ function renderCatalog() {
         <p>${item.description}</p>
         <div class="card-footer">
           <small>Editable</small>
-          <button class="download-button ${hasAccess ? "" : "locked"}" data-download="${item.id}">
-            ${hasAccess ? "Abrir carpeta" : "🔒 Acceso"}
-          </button>
+          <div class="card-actions">
+            ${item.phase !== "universal" ? `<button class="preview-button" data-preview="${item.id}">Vista previa</button>` : ""}
+            <button class="download-button ${hasAccess ? "" : "locked"}" data-download="${item.id}">
+              ${hasAccess ? "Abrir carpeta" : "🔒 Acceso"}
+            </button>
+          </div>
         </div>
       </article>`;
   }).join("");
@@ -207,11 +211,29 @@ $$(".filter-chip").forEach((button) => button.addEventListener("click", () => {
   renderCatalog();
 }));
 $("#catalog-grid").addEventListener("click", (event) => {
-  const button = event.target.closest("[data-download]");
-  if (!button) return;
-  const item = catalogs.find((entry) => entry.id === button.dataset.download);
+  const previewButton = event.target.closest("[data-preview]");
+  if (previewButton) {
+    const item = catalogs.find((entry) => entry.id === previewButton.dataset.preview);
+    if (item) {
+      $("#preview-title").textContent = item.title;
+      $("#preview-phase").textContent = `${phaseColors[item.phase].label} · Muestra protegida`;
+      const image = $("#preview-image");
+      image.src = new URL(`./previews/fase-${item.phase}.webp`, import.meta.url).href;
+      image.alt = `Vista previa protegida de ${item.title}`;
+      image.draggable = false;
+      previewDialog.showModal();
+    }
+    return;
+  }
+  const downloadButton = event.target.closest("[data-download]");
+  if (!downloadButton) return;
+  const item = catalogs.find((entry) => entry.id === downloadButton.dataset.download);
   if (item) openLibrary();
 });
+
+$("#close-preview").addEventListener("click", () => previewDialog.close());
+$("#preview-image").addEventListener("contextmenu", (event) => event.preventDefault());
+$("#preview-image").addEventListener("dragstart", (event) => event.preventDefault());
 
 $("#open-login").addEventListener("click", () => openAuth("login"));
 $("#hero-login").addEventListener("click", () => openAuth("login"));
