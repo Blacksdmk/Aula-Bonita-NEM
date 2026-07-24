@@ -22,6 +22,10 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
 import { firebaseConfig } from "./firebase-config.js";
 
+const ADMIN_UID = "0n3g5r70aOYAMBwfza4f0uwcrQr2";
+const WHATSAPP_NUMBER = "527711221282";
+const WHATSAPP_MESSAGE = "Hola, quiero solicitar los datos de pago para acceder a Aula Bonita NEM.";
+
 const phaseColors = {
   "3": { color: "#ff766d", soft: "#fff0ee", label: "Fase 3 · 1.º y 2.º" },
   "4": { color: "#35bfc4", soft: "#e9f8f8", label: "Fase 4 · 3.º y 4.º" },
@@ -155,6 +159,7 @@ function renderSession() {
   $("#logout-button").classList.toggle("hidden", !currentUser);
   $("#user-chip").classList.toggle("hidden", !currentUser);
   $("#user-chip").textContent = currentUser?.displayName || currentUser?.email || "";
+  $("#admin-link")?.classList.toggle("hidden", currentUser?.uid !== ADMIN_UID);
 
   const banner = $("#access-banner");
   banner.classList.toggle("active", hasAccess);
@@ -173,6 +178,13 @@ function renderSession() {
   }
   renderCatalog();
 }
+
+document.querySelectorAll(".whatsapp-link").forEach((link) => {
+  const destination = WHATSAPP_NUMBER
+    ? `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
+    : `https://wa.me/?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+  link.href = destination;
+});
 
 async function getUserAccess(user) {
   if (!db || !user) return false;

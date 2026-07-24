@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Administración | Aula Bonita NEM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./admin.css">
+</head>
+<body class="admin-body">
+  <header class="admin-header">
+    <a class="brand" href="../">
+      <span class="brand-mark">AB</span>
+      <span><strong>Aula Bonita</strong><small>Panel de administración</small></span>
+    </a>
+    <div>
+      <a class="button button-ghost" href="../">Ver sitio</a>
+      <button id="admin-logout" class="button button-dark hidden">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <section id="admin-loading" class="admin-state">
+      <span class="admin-spinner"></span>
+      <h1>Comprobando tu acceso…</h1>
+    </section>
+
+    <section id="admin-login" class="admin-login hidden">
+      <span class="eyebrow">Acceso exclusivo</span>
+      <h1>Panel de administradora</h1>
+      <p>Ingresa con la cuenta propietaria de Aula Bonita.</p>
+      <form id="admin-login-form">
+        <label>Correo electrónico<input id="admin-email" type="email" required autocomplete="email"></label>
+        <label>Contraseña<input id="admin-password" type="password" required minlength="6" autocomplete="current-password"></label>
+        <button class="button button-primary full" type="submit">Ingresar</button>
+      </form>
+      <p id="admin-login-message" class="form-message"></p>
+    </section>
+
+    <section id="admin-denied" class="admin-state hidden">
+      <span class="admin-state-icon">!</span>
+      <h1>Cuenta sin permisos</h1>
+      <p>Esta sección está reservada para la cuenta propietaria.</p>
+      <button id="admin-change-account" class="button button-primary">Usar otra cuenta</button>
+    </section>
+
+    <section id="admin-dashboard" class="admin-dashboard hidden">
+      <div class="admin-welcome">
+        <div><span class="eyebrow">Panel privado</span><h1>Hola, administradora</h1><p>Activa accesos y administra los archivos de tu biblioteca.</p></div>
+        <span id="admin-user-email" class="admin-owner-chip"></span>
+      </div>
+
+      <div class="admin-stats">
+        <article><small>Cuentas registradas</small><strong id="stat-total">0</strong></article>
+        <article><small>Accesos activos</small><strong id="stat-active">0</strong></article>
+        <article><small>Accesos pendientes</small><strong id="stat-pending">0</strong></article>
+      </div>
+
+      <div class="admin-grid">
+        <section class="admin-panel users-panel">
+          <div class="admin-panel-heading">
+            <div><span class="eyebrow">Clientes</span><h2>Accesos registrados</h2></div>
+            <button id="refresh-users" class="button button-ghost">Actualizar</button>
+          </div>
+          <label class="admin-search">Buscar cuenta<input id="user-search" type="search" placeholder="Nombre o correo"></label>
+          <div id="users-list" class="users-list"></div>
+        </section>
+
+        <section class="admin-panel upload-panel">
+          <span class="eyebrow">Biblioteca</span>
+          <h2>Subir o reemplazar archivo</h2>
+          <p>Usa exactamente la ruta indicada en el catálogo. Si ya existe un archivo con ese nombre, será reemplazado.</p>
+          <form id="upload-form">
+            <label>Ruta en Firebase Storage
+              <input id="storage-path" type="text" required placeholder="materiales/fase-3/01-planeacion.docx">
+            </label>
+            <label>Archivo Word o ZIP
+              <input id="material-file" type="file" required accept=".doc,.docx,.zip,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip">
+            </label>
+            <button class="button button-primary full" type="submit">Subir material</button>
+          </form>
+          <div id="upload-progress" class="upload-progress hidden"><span></span></div>
+          <p id="upload-message" class="form-message"></p>
+          <div class="path-help">
+            <strong>Carpetas principales</strong>
+            <code>paquetes/</code>
+            <code>materiales/fase-3/</code>
+            <code>materiales/fase-4/</code>
+            <code>materiales/fase-5/</code>
+            <code>materiales/universales/</code>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div id="admin-toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./admin.js"></script>
+</body>
+</html>

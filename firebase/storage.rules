@@ -1,6 +1,11 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.uid == "0n3g5r70aOYAMBwfza4f0uwcrQr2";
+    }
+
     function hasActiveAccess() {
       return request.auth != null
         && firestore.get(
@@ -9,13 +14,13 @@ service firebase.storage {
     }
 
     match /materiales/{allPaths=**} {
-      allow read: if hasActiveAccess();
-      allow write: if false;
+      allow read: if hasActiveAccess() || isAdmin();
+      allow write: if isAdmin();
     }
 
     match /paquetes/{allPaths=**} {
-      allow read: if hasActiveAccess();
-      allow write: if false;
+      allow read: if hasActiveAccess() || isAdmin();
+      allow write: if isAdmin();
     }
   }
 }
