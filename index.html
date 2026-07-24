@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Biblioteca privada de materiales editables para docentes de primaria.">
+  <title>Aula Bonita NEM | Materiales docentes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./web/styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="brand" href="#inicio" aria-label="Ir al inicio">
+        <span class="brand-mark">AB</span>
+        <span>
+          <strong>Aula Bonita</strong>
+          <small>Recursos NEM</small>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="Navegación principal">
+        <a href="#catalogo">Materiales</a>
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#preguntas">Preguntas</a>
+      </nav>
+      <div class="auth-actions">
+        <span id="user-chip" class="user-chip hidden"></span>
+        <button id="open-login" class="button button-ghost">Ingresar</button>
+        <button id="logout-button" class="button button-ghost hidden">Salir</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="inicio" class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">Biblioteca privada para maestras y maestros</span>
+          <h1>Materiales bonitos, editables y pensados para la <em>Nueva Escuela Mexicana</em></h1>
+          <p>Encuentra planeaciones, registros, rúbricas y formatos para las fases 3, 4 y 5. Tu acceso reúne todo en un solo lugar.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#catalogo">Explorar materiales</a>
+            <button id="hero-login" class="button button-soft">Ya tengo acceso</button>
+          </div>
+          <div class="trust-row" aria-label="Características principales">
+            <span>✓ Archivos Word</span>
+            <span>✓ Descarga protegida</span>
+            <span>✓ Acceso personal</span>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="paper-stack paper-one"></div>
+          <div class="paper-stack paper-two"></div>
+          <div class="hero-card">
+            <span class="mini-label">Colección docente</span>
+            <h2>Fases 3, 4 y 5</h2>
+            <div class="mini-grid">
+              <span>Asistencia</span><span>Lectura</span>
+              <span>Proyectos</span><span>Rúbricas</span>
+            </div>
+            <div class="pencil-line"><span></span></div>
+          </div>
+          <span class="floating-shape shape-star">★</span>
+          <span class="floating-shape shape-dot"></span>
+          <span class="floating-shape shape-book">▰</span>
+        </div>
+      </section>
+
+      <section id="access-banner" class="access-banner pending">
+        <div>
+          <span class="status-icon">i</span>
+          <div>
+            <strong id="access-title">Inicia sesión para descargar</strong>
+            <p id="access-message">Puedes explorar todo el catálogo. Las descargas se activan al confirmar tu acceso.</p>
+          </div>
+        </div>
+        <button id="banner-action" class="button button-dark">Ingresar</button>
+      </section>
+
+      <section id="catalogo" class="catalog-section">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">Catálogo digital</span>
+            <h2>Encuentra justo lo que necesitas</h2>
+          </div>
+          <p id="catalog-count">Cargando materiales…</p>
+        </div>
+
+        <div class="catalog-toolbar">
+          <label class="search-box">
+            <span aria-hidden="true">⌕</span>
+            <input id="search-input" type="search" placeholder="Buscar asistencia, lectura, rúbrica…" autocomplete="off">
+          </label>
+          <div class="filters" aria-label="Filtrar por fase">
+            <button class="filter-chip active" data-phase="all">Todos</button>
+            <button class="filter-chip" data-phase="3">Fase 3</button>
+            <button class="filter-chip" data-phase="4">Fase 4</button>
+            <button class="filter-chip" data-phase="5">Fase 5</button>
+            <button class="filter-chip" data-phase="universal">Universales</button>
+          </div>
+        </div>
+
+        <div id="catalog-grid" class="catalog-grid" aria-live="polite"></div>
+        <div id="empty-state" class="empty-state hidden">
+          <span>✦</span>
+          <h3>No encontramos ese material</h3>
+          <p>Prueba con otra palabra o selecciona una fase diferente.</p>
+        </div>
+      </section>
+
+      <section id="como-funciona" class="how-section">
+        <div class="section-heading centered">
+          <span class="eyebrow">Acceso sencillo y seguro</span>
+          <h2>¿Cómo funciona?</h2>
+        </div>
+        <div class="steps-grid">
+          <article><span>1</span><h3>Crea tu cuenta</h3><p>Regístrate con tu correo y una contraseña personal.</p></article>
+          <article><span>2</span><h3>Realiza tu pago</h3><p>Recibe las instrucciones de pago por el medio indicado.</p></article>
+          <article><span>3</span><h3>Activamos tu acceso</h3><p>Al confirmar el pago, tu biblioteca queda habilitada.</p></article>
+          <article><span>4</span><h3>Descarga</h3><p>Busca el material y descarga su versión editable en Word.</p></article>
+        </div>
+      </section>
+
+      <section id="preguntas" class="faq-section">
+        <div class="faq-intro">
+          <span class="eyebrow">Preguntas frecuentes</span>
+          <h2>Todo claro antes de comenzar</h2>
+          <p>Puedes sustituir estos textos por tus condiciones comerciales definitivas.</p>
+        </div>
+        <div class="faq-list">
+          <details open><summary>¿Los materiales son editables?</summary><p>Sí. Los archivos principales se entregan en Word para modificar datos, criterios, colores y campos.</p></details>
+          <details><summary>¿Puedo compartir mi cuenta?</summary><p>El acceso es personal. Puedes establecer en tus términos si permites uso en más de un dispositivo.</p></details>
+          <details><summary>¿Cuánto tarda la activación?</summary><p>La activación manual puede realizarse después de confirmar el pago. Define aquí tu horario y tiempo de respuesta.</p></details>
+          <details><summary>¿Cómo recibo nuevos materiales?</summary><p>Los materiales que agregues a Firebase aparecerán en el catálogo cuando actualices sus datos.</p></details>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="brand footer-brand">
+        <span class="brand-mark">AB</span>
+        <span><strong>Aula Bonita</strong><small>Recursos NEM</small></span>
+      </div>
+      <p>Materiales editables para acompañar la práctica docente.</p>
+      <p class="footer-note">© <span id="current-year"></span> · Sustituye este texto por tu aviso de privacidad y términos de uso.</p>
+    </footer>
+  </div>
+
+  <dialog id="auth-dialog">
+    <button id="close-dialog" class="dialog-close" aria-label="Cerrar">×</button>
+    <div class="dialog-brand"><span class="brand-mark">AB</span></div>
+    <div id="login-view">
+      <span class="eyebrow">Biblioteca privada</span>
+      <h2>Bienvenida de nuevo</h2>
+      <p>Ingresa con el correo que utilizaste al adquirir tu acceso.</p>
+      <form id="login-form">
+        <label>Correo electrónico<input id="login-email" type="email" required autocomplete="email"></label>
+        <label>Contraseña<input id="login-password" type="password" required minlength="6" autocomplete="current-password"></label>
+        <button class="button button-primary full" type="submit">Ingresar</button>
+      </form>
+      <button id="forgot-password" class="text-button">Olvidé mi contraseña</button>
+      <div class="dialog-switch">¿Primera vez? <button id="show-register" class="text-button">Crear cuenta</button></div>
+    </div>
+    <div id="register-view" class="hidden">
+      <span class="eyebrow">Crea tu acceso</span>
+      <h2>Registra tu cuenta</h2>
+      <p>Después del registro, tu acceso permanecerá pendiente hasta confirmar el pago.</p>
+      <form id="register-form">
+        <label>Nombre<input id="register-name" type="text" required autocomplete="name"></label>
+        <label>Correo electrónico<input id="register-email" type="email" required autocomplete="email"></label>
+        <label>Contraseña<input id="register-password" type="password" required minlength="6" autocomplete="new-password"></label>
+        <button class="button button-primary full" type="submit">Crear cuenta</button>
+      </form>
+      <div class="dialog-switch">¿Ya tienes cuenta? <button id="show-login" class="text-button">Ingresar</button></div>
+    </div>
+    <p id="auth-message" class="form-message" role="alert"></p>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./web/app.js"></script>
+</body>
+</html>
