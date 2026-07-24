@@ -221,6 +221,35 @@ a { color: inherit; text-decoration: none; }
 .steps-grid h3 { font-family:"Baloo 2"; font-size:21px; margin:14px 0 5px; }
 .steps-grid p { margin:0; color:var(--muted); font-size:13px; line-height:1.55; }
 
+.payment-section {
+  padding: 90px max(20px, calc((100% - 1120px)/2));
+  background: #fff;
+}
+.payment-card {
+  padding: 45px;
+  display: grid;
+  grid-template-columns: .8fr 1.2fr;
+  gap: 30px 55px;
+  background:
+    radial-gradient(circle at 95% 5%, rgba(255,201,74,.23), transparent 16rem),
+    radial-gradient(circle at 4% 94%, rgba(142,104,201,.15), transparent 16rem),
+    var(--cream);
+  border: 1px solid #f0dfbd;
+  border-radius: 34px;
+  box-shadow: var(--shadow);
+}
+.payment-card h2 { margin: 8px 0 12px; font-family: "Baloo 2"; font-size: clamp(34px,4vw,50px); line-height: 1; }
+.payment-card > div > p { color: var(--muted); line-height: 1.65; }
+.payment-card ol { margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; list-style: none; }
+.payment-card li { padding: 14px; display: flex; align-items: center; gap: 11px; background: rgba(255,255,255,.88); border: 1px solid #efe4ca; border-radius: 17px; }
+.payment-card li > span { flex: 0 0 34px; width: 34px; height: 34px; display: grid; place-items: center; color: white; background: var(--coral); border-radius: 11px; font-family: "Baloo 2"; font-weight: 900; }
+.payment-card li:nth-child(2) > span { background: var(--aqua); }
+.payment-card li:nth-child(3) > span { background: var(--purple); }
+.payment-card li:nth-child(4) > span { background: var(--green); }
+.payment-card li p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.35; }
+.payment-card li strong { display: block; color: var(--ink); }
+.payment-button { grid-column: 2; justify-self: start; }
+
 .faq-section { width:min(1080px,calc(100% - 40px)); margin:0 auto; padding:100px 0; display:grid; grid-template-columns:.8fr 1.2fr; gap:70px; }
 .faq-intro p { color:var(--muted); line-height:1.6; }
 .faq-list details { padding:18px 0; border-bottom:1px solid var(--line); }
@@ -252,6 +281,25 @@ dialog input:focus { border-color:var(--aqua); box-shadow:0 0 0 3px rgba(53,191,
 .form-message { min-height:20px; margin-bottom:0; color:var(--coral); font-size:12px; font-weight:800; }
 .toast { position:fixed; left:50%; bottom:24px; z-index:20; padding:13px 18px; color:white; background:var(--ink); border-radius:13px; opacity:0; pointer-events:none; transform:translate(-50%,20px); transition:.22s ease; box-shadow:0 12px 30px rgba(25,41,63,.25); }
 .toast.show { opacity:1; transform:translate(-50%,0); }
+.whatsapp-float {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 18;
+  padding: 10px 15px 10px 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: white;
+  background: #20b965;
+  border: 2px solid white;
+  border-radius: 999px;
+  box-shadow: 0 13px 32px rgba(20,115,67,.28);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.whatsapp-float:hover { transform: translateY(-3px); box-shadow: 0 17px 36px rgba(20,115,67,.36); }
+.whatsapp-float span { width: 34px; height: 34px; display: grid; place-items: center; color: #12864a; background: white; border-radius: 50%; font-size: 11px; font-weight: 900; }
+.whatsapp-float b { font-size: 13px; }
 
 @media (max-width: 930px) {
   .nav-links { display:none; }
@@ -264,6 +312,8 @@ dialog input:focus { border-color:var(--aqua); box-shadow:0 0 0 3px rgba(53,191,
   .search-box { min-width:0; }
   .filters { justify-content:flex-start; }
   .steps-grid { grid-template-columns:repeat(2,1fr); }
+  .payment-card { grid-template-columns: 1fr; }
+  .payment-button { grid-column: 1; }
   .faq-section { grid-template-columns:1fr; gap:25px; }
 }
 @media (max-width: 620px) {
@@ -282,5 +332,9 @@ dialog input:focus { border-color:var(--aqua); box-shadow:0 0 0 3px rgba(53,191,
   .section-heading { align-items:flex-start; flex-direction:column; gap:2px; }
   .catalog-grid { grid-template-columns:1fr; }
   .steps-grid { grid-template-columns:1fr; }
+  .payment-card { padding: 30px 22px; }
+  .payment-card ol { grid-template-columns: 1fr; }
+  .whatsapp-float b { display: none; }
+  .whatsapp-float { padding: 8px; }
   dialog { padding:31px 23px; }
 }

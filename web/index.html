@@ -27,6 +27,7 @@
       </nav>
       <div class="auth-actions">
         <span id="user-chip" class="user-chip hidden"></span>
+        <a id="admin-link" class="button button-soft hidden" href="./admin.html">Administrar</a>
         <button id="open-login" class="button button-ghost">Ingresar</button>
         <button id="logout-button" class="button button-ghost hidden">Salir</button>
       </div>
@@ -121,6 +122,23 @@
         </div>
       </section>
 
+      <section id="pago" class="payment-section">
+        <div class="payment-card">
+          <div>
+            <span class="eyebrow">Activa tu biblioteca</span>
+            <h2>Instrucciones de pago</h2>
+            <p>El pago se realiza mediante transferencia bancaria. Solicita los datos por WhatsApp y envía tu comprobante junto con el correo con el que creaste tu cuenta.</p>
+          </div>
+          <ol>
+            <li><span>1</span><p><strong>Crea tu cuenta</strong> con tu correo personal.</p></li>
+            <li><span>2</span><p><strong>Solicita los datos bancarios</strong> por WhatsApp.</p></li>
+            <li><span>3</span><p><strong>Envía tu comprobante</strong> y el correo registrado.</p></li>
+            <li><span>4</span><p><strong>Recibe la activación</strong> de tu biblioteca.</p></li>
+          </ol>
+          <a class="button button-primary payment-button whatsapp-link" href="https://wa.me/" target="_blank" rel="noopener">Solicitar datos por WhatsApp</a>
+        </div>
+      </section>
+
       <section id="preguntas" class="faq-section">
         <div class="faq-intro">
           <span class="eyebrow">Preguntas frecuentes</span>
@@ -130,7 +148,7 @@
         <div class="faq-list">
           <details open><summary>¿Los materiales son editables?</summary><p>Sí. Los archivos principales se entregan en Word para modificar datos, criterios, colores y campos.</p></details>
           <details><summary>¿Puedo compartir mi cuenta?</summary><p>El acceso es personal. Puedes establecer en tus términos si permites uso en más de un dispositivo.</p></details>
-          <details><summary>¿Cuánto tarda la activación?</summary><p>La activación manual puede realizarse después de confirmar el pago. Define aquí tu horario y tiempo de respuesta.</p></details>
+          <details><summary>¿Cuánto tarda la activación?</summary><p>La activación se realiza después de confirmar tu pago y verificar el correo de tu cuenta.</p></details>
           <details><summary>¿Cómo recibo nuevos materiales?</summary><p>Los materiales que agregues a Firebase aparecerán en el catálogo cuando actualices sus datos.</p></details>
         </div>
       </section>
@@ -177,6 +195,10 @@
   </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <a class="whatsapp-float whatsapp-link" href="https://wa.me/" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
+    <span>WA</span>
+    <b>¿Necesitas ayuda?</b>
+  </a>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
