@@ -86,6 +86,7 @@ const db = firebaseApp ? getDatabase(firebaseApp) : null;
 let currentUser = null;
 let hasAccess = false;
 let libraryUrl = "";
+let resourceLinks = {};
 let activePhase = "all";
 let searchTerm = "";
 
@@ -132,6 +133,8 @@ function renderCatalog() {
   $("#empty-state").classList.toggle("hidden", items.length > 0);
   $("#catalog-grid").innerHTML = items.map((item) => {
     const theme = phaseColors[item.phase];
+    const resourceUrl = getResourceUrl(item);
+    const canOpen = Boolean(currentUser && hasAccess && resourceUrl);
     return `
       <article class="material-card" style="--card-color:${theme.color};--card-soft:${theme.soft}">
         <div class="card-top">
@@ -145,8 +148,8 @@ function renderCatalog() {
           <small>Editable</small>
           <div class="card-actions">
             ${item.phase !== "universal" ? `<button class="preview-button" data-preview="${item.id}">Vista previa</button>` : ""}
-            <button class="download-button ${hasAccess ? "" : "locked"}" data-download="${item.id}">
-              ${hasAccess ? "Abrir carpeta" : "🔒 Acceso"}
+            <button class="download-button ${canOpen ? "" : "locked"}" data-download="${item.id}">
+              ${canOpen ? (item.type === "ZIP" ? "Abrir paquete" : "Abrir archivo") : "🔒 Comprar"}
             </button>
           </div>
         </div>
@@ -164,11 +167,12 @@ function renderSession() {
   const banner = $("#access-banner");
   banner.classList.toggle("active", hasAccess);
   if (hasAccess) {
-    $("#access-title").textContent = "Tu biblioteca está activa";
-    $("#access-message").textContent = libraryUrl
-      ? "Tu carpeta privada de Google Drive está disponible."
-      : "Tu pago está activo; falta asignar tu carpeta privada.";
-    $("#banner-action").textContent = libraryUrl ? "Abrir mi biblioteca" : "Contactar";
+    const assignedCount = Object.keys(resourceLinks).length;
+    $("#access-title").textContent = "Tus materiales están activos";
+    $("#access-message").textContent = assignedCount
+      ? `Tienes ${assignedCount} acceso${assignedCount === 1 ? "" : "s"} asignado${assignedCount === 1 ? "" : "s"}. Abre cada material desde su tarjeta.`
+      : (libraryUrl ? "Tu biblioteca general está disponible." : "Tu pago está activo; falta asignar tus materiales.");
+    $("#banner-action").textContent = assignedCount ? "Ver mis materiales" : (libraryUrl ? "Abrir biblioteca" : "Contactar");
   } else if (currentUser) {
     $("#access-title").textContent = "Tu acceso está pendiente";
     $("#access-message").textContent = "Cuando confirmemos tu pago, las descargas se habilitarán automáticamente.";
@@ -194,11 +198,18 @@ async function getUserProfile(user) {
   return snapshot.exists() ? snapshot.val() : null;
 }
 
-function openLibrary() {
+function getResourceUrl(item) {
+  if (resourceLinks[item.id]?.url) return resourceLinks[item.id].url;
+  if (item.phase !== "universal") return resourceLinks[`pack-fase-${item.phase}`]?.url || "";
+  return "";
+}
+
+function openResource(item) {
   if (!currentUser) return openAuth("login");
   if (!hasAccess) return showToast("Tu cuenta todavía no tiene acceso a descargas.");
-  if (!libraryUrl) return showToast("Tu carpeta aún no ha sido asignada. Contáctanos por WhatsApp.");
-  window.open(libraryUrl, "_blank", "noopener,noreferrer");
+  const url = getResourceUrl(item);
+  if (!url) return showToast("Este material no está incluido en tu compra.");
+  window.open(url, "_blank", "noopener,noreferrer");
 }
 
 $("#search-input").addEventListener("input", (event) => {
@@ -229,7 +240,7 @@ $("#catalog-grid").addEventListener("click", (event) => {
   const downloadButton = event.target.closest("[data-download]");
   if (!downloadButton) return;
   const item = catalogs.find((entry) => entry.id === downloadButton.dataset.download);
-  if (item) openLibrary();
+  if (item) openResource(item);
 });
 
 $("#close-preview").addEventListener("click", () => previewDialog.close());
@@ -242,7 +253,8 @@ $("#close-dialog").addEventListener("click", () => authDialog.close());
 $("#show-register").addEventListener("click", () => setAuthView("register"));
 $("#show-login").addEventListener("click", () => setAuthView("login"));
 $("#banner-action").addEventListener("click", () => {
-  if (hasAccess && libraryUrl) openLibrary();
+  if (hasAccess && Object.keys(resourceLinks).length) document.querySelector("#catalogo")?.scrollIntoView();
+  else if (hasAccess && libraryUrl) window.open(libraryUrl, "_blank", "noopener,noreferrer");
   else if (!currentUser) openAuth("login");
   else document.querySelector(".whatsapp-link")?.click();
 });
@@ -299,6 +311,7 @@ if (auth) {
     const profile = await getUserProfile(user);
     hasAccess = profile?.active === true;
     libraryUrl = profile?.libraryUrl || "";
+    resourceLinks = profile?.resources || {};
     renderSession();
   });
 } else {

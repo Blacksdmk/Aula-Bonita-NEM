@@ -19,6 +19,32 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 const $ = (selector) => document.querySelector(selector);
 
+const MATERIALS = [
+  ["planeacion", "Planeación de proyecto"],
+  ["pda", "Seguimiento de contenidos y PDA"],
+  ["rubrica", "Rúbrica formativa"],
+  ["portafolio", "Portafolio de evidencias"],
+  ["investigacion", "Investigación y descubrimiento"],
+  ["ideas", "Expresión, diálogo y argumentación"],
+  ["problemas", "Resolución de problemas"],
+  ["autoevaluacion", "Autoevaluación y plan de mejora"],
+  ["informe", "Informe descriptivo individual"],
+  ["tareas", "Registro mensual de tareas"],
+  ["materiales", "Lista de cotejo de materiales"],
+  ["asistencia", "Registro mensual de asistencia"],
+  ["lectura", "Registro de lectura"]
+];
+
+const RESOURCE_OPTIONS = [
+  ["pack-fase-3", "Paquete completo Fase 3"],
+  ["pack-fase-4", "Paquete completo Fase 4"],
+  ["pack-fase-5", "Paquete completo Fase 5"],
+  ...["3", "4", "5"].flatMap((phase) =>
+    MATERIALS.map(([key, title]) => [`fase-${phase}-${key}`, `Fase ${phase} · ${title}`])
+  ),
+  ["bitacora", "Bitácora de incidencias"]
+];
+
 let users = [];
 
 function escapeHtml(value) {
@@ -45,10 +71,9 @@ function showToast(message) {
 }
 
 function validDriveUrl(value) {
-  if (!value) return true;
   try {
     const url = new URL(value);
-    return url.protocol === "https:" && url.hostname === "drive.google.com";
+    return url.protocol === "https:" && ["drive.google.com", "docs.google.com"].includes(url.hostname);
   } catch {
     return false;
   }
@@ -60,24 +85,45 @@ function renderUsers() {
     `${user.name || ""} ${user.email || ""}`.toLowerCase().includes(needle)
   );
 
-  $("#users-list").innerHTML = visible.length ? visible.map((user) => `
-    <article class="user-row">
-      <div class="user-identity">
-        <strong>${escapeHtml(user.name || "Sin nombre")}</strong>
-        <small>${escapeHtml(user.email || "Sin correo")}</small>
-      </div>
-      <label class="drive-field">
-        <span>Carpeta privada de Google Drive</span>
-        <input type="url" value="${escapeHtml(user.libraryUrl || "")}" placeholder="https://drive.google.com/..." data-drive-input="${user.id}">
-      </label>
-      <div class="user-status">
-        <span class="status-pill ${user.active ? "active" : ""}">${user.active ? "Activo" : "Pendiente"}</span>
-        <button class="access-toggle save-link" data-save-link="${user.id}">Guardar enlace</button>
-        <button class="access-toggle ${user.active ? "revoke" : ""}" data-user="${user.id}" data-active="${user.active}">
-          ${user.active ? "Suspender" : "Activar"}
-        </button>
-      </div>
-    </article>`).join("") : '<div class="admin-empty">No encontramos cuentas con esos datos.</div>';
+  $("#users-list").innerHTML = visible.length ? visible.map((user) => {
+    const resources = Object.entries(user.resources || {});
+    const resourceRows = resources.length
+      ? resources.map(([resourceId, resource]) => `
+          <div class="assigned-resource">
+            <span><strong>${escapeHtml(resource.title)}</strong><small>${escapeHtml(resource.url)}</small></span>
+            <button class="remove-resource" data-remove-resource="${escapeHtml(resourceId)}" data-owner="${user.id}" aria-label="Quitar acceso">×</button>
+          </div>`).join("")
+      : '<p class="no-resources">Todavía no tiene materiales asignados.</p>';
+    const options = RESOURCE_OPTIONS.map(([id, title]) =>
+      `<option value="${id}">${escapeHtml(title)}</option>`
+    ).join("");
+
+    return `
+      <article class="user-row">
+        <div class="user-identity">
+          <strong>${escapeHtml(user.name || "Sin nombre")}</strong>
+          <small>${escapeHtml(user.email || "Sin correo")}</small>
+        </div>
+        <div class="resource-manager">
+          <label class="drive-field">
+            <span>Material o paquete adquirido</span>
+            <select data-resource-select="${user.id}">${options}</select>
+          </label>
+          <label class="drive-field">
+            <span>Enlace privado del archivo o carpeta</span>
+            <input type="url" placeholder="Enlace de Drive o Google Docs" data-resource-url="${user.id}">
+          </label>
+          <button class="access-toggle save-link add-resource" data-add-resource="${user.id}">Asignar material</button>
+        </div>
+        <div class="assigned-list">${resourceRows}</div>
+        <div class="user-status">
+          <span class="status-pill ${user.active ? "active" : ""}">${user.active ? "Activo" : "Pendiente"}</span>
+          <button class="access-toggle ${user.active ? "revoke" : ""}" data-user="${user.id}" data-active="${user.active}">
+            ${user.active ? "Suspender" : "Activar"}
+          </button>
+        </div>
+      </article>`;
+  }).join("") : '<div class="admin-empty">No encontramos cuentas con esos datos.</div>';
 
   $("#stat-total").textContent = users.length;
   $("#stat-active").textContent = users.filter((user) => user.active).length;
@@ -116,26 +162,51 @@ $("#refresh-users").addEventListener("click", loadUsers);
 $("#user-search").addEventListener("input", renderUsers);
 
 $("#users-list").addEventListener("click", async (event) => {
-  const saveButton = event.target.closest("[data-save-link]");
-  if (saveButton) {
-    const userId = saveButton.dataset.saveLink;
-    const input = document.querySelector(`[data-drive-input="${userId}"]`);
-    const libraryUrl = input.value.trim();
-    if (!validDriveUrl(libraryUrl)) {
-      showToast("Usa un enlace válido de Google Drive.");
+  const addButton = event.target.closest("[data-add-resource]");
+  if (addButton) {
+    const userId = addButton.dataset.addResource;
+    const select = document.querySelector(`[data-resource-select="${userId}"]`);
+    const input = document.querySelector(`[data-resource-url="${userId}"]`);
+    const resourceId = select.value;
+    const url = input.value.trim();
+    const title = RESOURCE_OPTIONS.find(([id]) => id === resourceId)?.[1] || resourceId;
+    if (!url || !validDriveUrl(url)) {
+      showToast("Usa un enlace válido de Google Drive o Google Docs.");
       return;
     }
-    saveButton.disabled = true;
+    addButton.disabled = true;
     try {
-      await update(ref(db, `users/${userId}`), { libraryUrl });
+      await update(ref(db, `users/${userId}/resources/${resourceId}`), { title, url });
       const user = users.find((entry) => entry.id === userId);
-      if (user) user.libraryUrl = libraryUrl;
-      showToast("Enlace privado guardado.");
+      if (user) {
+        user.resources ||= {};
+        user.resources[resourceId] = { title, url };
+      }
+      renderUsers();
+      showToast("Material asignado correctamente.");
     } catch (error) {
       console.error(error);
-      showToast("No fue posible guardar el enlace. Revisa las reglas.");
-    } finally {
-      saveButton.disabled = false;
+      showToast("No fue posible asignar el material. Revisa las reglas.");
+      addButton.disabled = false;
+    }
+    return;
+  }
+
+  const removeButton = event.target.closest("[data-remove-resource]");
+  if (removeButton) {
+    const userId = removeButton.dataset.owner;
+    const resourceId = removeButton.dataset.removeResource;
+    removeButton.disabled = true;
+    try {
+      await update(ref(db, `users/${userId}/resources`), { [resourceId]: null });
+      const user = users.find((entry) => entry.id === userId);
+      if (user?.resources) delete user.resources[resourceId];
+      renderUsers();
+      showToast("Acceso al material retirado.");
+    } catch (error) {
+      console.error(error);
+      showToast("No fue posible retirar el acceso.");
+      removeButton.disabled = false;
     }
     return;
   }
@@ -144,8 +215,8 @@ $("#users-list").addEventListener("click", async (event) => {
   if (!button) return;
   const newState = button.dataset.active !== "true";
   const user = users.find((entry) => entry.id === button.dataset.user);
-  if (newState && !user?.libraryUrl) {
-    showToast("Guarda primero la carpeta privada de Google Drive.");
+  if (newState && !Object.keys(user?.resources || {}).length && !user?.libraryUrl) {
+    showToast("Asigna primero por lo menos un material o paquete.");
     return;
   }
   button.disabled = true;

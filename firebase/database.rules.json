@@ -23,6 +23,20 @@
         "libraryUrl": {
           ".validate": "newData.isString() && newData.val().length <= 2000"
         },
+        "resources": {
+          "$resourceId": {
+            ".validate": "newData.hasChildren(['title', 'url'])",
+            "title": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 160"
+            },
+            "url": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 2000"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
         "$other": {
           ".validate": false
         }
