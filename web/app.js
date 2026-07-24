@@ -51,6 +51,7 @@ const catalogs = ["3", "4", "5"].flatMap((phase) => materialNames.map((item, ind
   description: item[2],
   icon: item[3],
   type: "Word",
+  preview: item[0],
   storagePath: `materiales/fase-${phase}/${String(index + 1).padStart(2, "0")}-${item[0]}.docx`
 })));
 
@@ -58,17 +59,17 @@ catalogs.unshift(
   {
     id: "pack-fase-3", phase: "3", title: "Paquete completo Fase 3",
     description: "Colección completa para 1.º y 2.º de primaria.", icon: "P3", type: "ZIP",
-    storagePath: "paquetes/Paquete_Fase_3_NEM_Editable.zip"
+    preview: "fase-3", storagePath: "paquetes/Paquete_Fase_3_NEM_Editable.zip"
   },
   {
     id: "pack-fase-4", phase: "4", title: "Paquete completo Fase 4",
     description: "Colección completa para 3.º y 4.º de primaria.", icon: "P4", type: "ZIP",
-    storagePath: "paquetes/Paquete_Fase_4_NEM_Editable.zip"
+    preview: "fase-4", storagePath: "paquetes/Paquete_Fase_4_NEM_Editable.zip"
   },
   {
     id: "pack-fase-5", phase: "5", title: "Paquete completo Fase 5",
     description: "Colección completa para 5.º y 6.º de primaria.", icon: "P5", type: "ZIP",
-    storagePath: "paquetes/Paquete_Fase_5_NEM_Editable.zip"
+    preview: "fase-5", storagePath: "paquetes/Paquete_Fase_5_NEM_Editable.zip"
   },
   {
     id: "bitacora", phase: "universal", title: "Bitácora de incidencias",
@@ -218,7 +219,7 @@ $("#catalog-grid").addEventListener("click", (event) => {
       $("#preview-title").textContent = item.title;
       $("#preview-phase").textContent = `${phaseColors[item.phase].label} · Muestra protegida`;
       const image = $("#preview-image");
-      image.src = new URL(`./previews/fase-${item.phase}.webp`, import.meta.url).href;
+      image.src = new URL(`./previews/${item.preview}.webp`, import.meta.url).href;
       image.alt = `Vista previa protegida de ${item.title}`;
       image.draggable = false;
       previewDialog.showModal();
