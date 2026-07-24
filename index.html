@@ -194,6 +194,20 @@
     <p id="auth-message" class="form-message" role="alert"></p>
   </dialog>
 
+  <dialog id="preview-dialog" class="preview-dialog">
+    <button id="close-preview" class="dialog-close" aria-label="Cerrar vista previa">×</button>
+    <div class="preview-heading">
+      <span id="preview-phase" class="eyebrow">Muestra protegida</span>
+      <h2 id="preview-title">Vista previa</h2>
+      <p>Esta muestra permite apreciar el diseño. El archivo completo y editable se entrega únicamente con acceso activo.</p>
+    </div>
+    <div class="preview-frame">
+      <img id="preview-image" src="" alt="" loading="lazy">
+      <span class="preview-shield">Muestra protegida</span>
+    </div>
+    <p class="preview-note">La marca de agua y la resolución reducida protegen el material. No se permite su reproducción.</p>
+  </dialog>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <a class="whatsapp-float whatsapp-link" href="https://wa.me/" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
     <span>WA</span>
