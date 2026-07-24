@@ -20,6 +20,10 @@ import { firebaseConfig } from "./firebase-config.js";
 const ADMIN_UID = "0n3g5r70aOYAMBwfza4f0uwcrQr2";
 const WHATSAPP_NUMBER = "527711221282";
 const WHATSAPP_MESSAGE = "Hola, quiero solicitar los datos de pago para acceder a Aula Bonita NEM.";
+const REAL_PREVIEWS = new Set([
+  "fase-3", "fase-4", "fase-5", "rubrica", "autoevaluacion",
+  "tareas", "materiales", "asistencia", "lectura"
+]);
 
 const phaseColors = {
   "3": { color: "#ff766d", soft: "#fff0ee", label: "Fase 3 · 1.º y 2.º" },
@@ -135,6 +139,7 @@ function renderCatalog() {
     const theme = phaseColors[item.phase];
     const resourceUrl = getResourceUrl(item);
     const canOpen = Boolean(currentUser && hasAccess && resourceUrl);
+    const price = item.type === "ZIP" ? "$179 MXN" : (item.phase === "universal" ? "$39 MXN" : "$29 MXN");
     return `
       <article class="material-card" style="--card-color:${theme.color};--card-soft:${theme.soft}">
         <div class="card-top">
@@ -145,9 +150,9 @@ function renderCatalog() {
         <h3>${item.title}</h3>
         <p>${item.description}</p>
         <div class="card-footer">
-          <small>Editable</small>
+          <small>Editable · ${price}</small>
           <div class="card-actions">
-            ${item.phase !== "universal" ? `<button class="preview-button" data-preview="${item.id}">Vista previa</button>` : ""}
+            ${REAL_PREVIEWS.has(item.preview) ? `<button class="preview-button" data-preview="${item.id}">Muestra real</button>` : ""}
             <button class="download-button ${canOpen ? "" : "locked"}" data-download="${item.id}">
               ${canOpen ? (item.type === "ZIP" ? "Abrir paquete" : "Abrir archivo") : "🔒 Comprar"}
             </button>
