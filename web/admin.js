@@ -6,24 +6,17 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
-  collection,
-  doc,
-  getDocs,
-  getFirestore,
-  updateDoc
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-import {
-  getStorage,
+  get,
+  getDatabase,
   ref,
-  uploadBytesResumable
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
+  update
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 const ADMIN_UID = "0n3g5r70aOYAMBwfza4f0uwcrQr2";
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+const db = getDatabase(app);
 const $ = (selector) => document.querySelector(selector);
 
 let users = [];
@@ -51,19 +44,35 @@ function showToast(message) {
   showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 3000);
 }
 
+function validDriveUrl(value) {
+  if (!value) return true;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname === "drive.google.com";
+  } catch {
+    return false;
+  }
+}
+
 function renderUsers() {
   const needle = $("#user-search").value.trim().toLowerCase();
   const visible = users.filter((user) =>
     `${user.name || ""} ${user.email || ""}`.toLowerCase().includes(needle)
   );
+
   $("#users-list").innerHTML = visible.length ? visible.map((user) => `
     <article class="user-row">
-      <div>
+      <div class="user-identity">
         <strong>${escapeHtml(user.name || "Sin nombre")}</strong>
         <small>${escapeHtml(user.email || "Sin correo")}</small>
       </div>
+      <label class="drive-field">
+        <span>Carpeta privada de Google Drive</span>
+        <input type="url" value="${escapeHtml(user.libraryUrl || "")}" placeholder="https://drive.google.com/..." data-drive-input="${user.id}">
+      </label>
       <div class="user-status">
         <span class="status-pill ${user.active ? "active" : ""}">${user.active ? "Activo" : "Pendiente"}</span>
+        <button class="access-toggle save-link" data-save-link="${user.id}">Guardar enlace</button>
         <button class="access-toggle ${user.active ? "revoke" : ""}" data-user="${user.id}" data-active="${user.active}">
           ${user.active ? "Suspender" : "Activar"}
         </button>
@@ -78,13 +87,16 @@ function renderUsers() {
 async function loadUsers() {
   $("#users-list").innerHTML = '<div class="admin-empty">Cargando cuentas…</div>';
   try {
-    const snapshot = await getDocs(collection(db, "users"));
-    users = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }))
+    const snapshot = await get(ref(db, "users"));
+    const value = snapshot.val() || {};
+    users = Object.entries(value)
+      .map(([id, user]) => ({ id, ...user }))
+      .filter((user) => user.id !== ADMIN_UID)
       .sort((a, b) => (a.name || a.email || "").localeCompare(b.name || b.email || ""));
     renderUsers();
   } catch (error) {
     console.error(error);
-    $("#users-list").innerHTML = '<div class="admin-empty">No fue posible leer las cuentas. Publica primero las reglas de Firestore.</div>';
+    $("#users-list").innerHTML = '<div class="admin-empty">No fue posible leer las cuentas. Publica primero las reglas de Realtime Database.</div>';
   }
 }
 
@@ -104,13 +116,41 @@ $("#refresh-users").addEventListener("click", loadUsers);
 $("#user-search").addEventListener("input", renderUsers);
 
 $("#users-list").addEventListener("click", async (event) => {
+  const saveButton = event.target.closest("[data-save-link]");
+  if (saveButton) {
+    const userId = saveButton.dataset.saveLink;
+    const input = document.querySelector(`[data-drive-input="${userId}"]`);
+    const libraryUrl = input.value.trim();
+    if (!validDriveUrl(libraryUrl)) {
+      showToast("Usa un enlace válido de Google Drive.");
+      return;
+    }
+    saveButton.disabled = true;
+    try {
+      await update(ref(db, `users/${userId}`), { libraryUrl });
+      const user = users.find((entry) => entry.id === userId);
+      if (user) user.libraryUrl = libraryUrl;
+      showToast("Enlace privado guardado.");
+    } catch (error) {
+      console.error(error);
+      showToast("No fue posible guardar el enlace. Revisa las reglas.");
+    } finally {
+      saveButton.disabled = false;
+    }
+    return;
+  }
+
   const button = event.target.closest("[data-user]");
   if (!button) return;
   const newState = button.dataset.active !== "true";
+  const user = users.find((entry) => entry.id === button.dataset.user);
+  if (newState && !user?.libraryUrl) {
+    showToast("Guarda primero la carpeta privada de Google Drive.");
+    return;
+  }
   button.disabled = true;
   try {
-    await updateDoc(doc(db, "users", button.dataset.user), { active: newState });
-    const user = users.find((entry) => entry.id === button.dataset.user);
+    await update(ref(db, `users/${button.dataset.user}`), { active: newState });
     if (user) user.active = newState;
     renderUsers();
     showToast(newState ? "Acceso activado." : "Acceso suspendido.");
@@ -119,33 +159,6 @@ $("#users-list").addEventListener("click", async (event) => {
     showToast("No fue posible cambiar el acceso. Revisa las reglas.");
     button.disabled = false;
   }
-});
-
-$("#upload-form").addEventListener("submit", (event) => {
-  event.preventDefault();
-  const file = $("#material-file").files[0];
-  const path = $("#storage-path").value.trim().replace(/^\/+/, "");
-  if (!file || !path) return;
-  if (!path.startsWith("materiales/") && !path.startsWith("paquetes/")) {
-    $("#upload-message").textContent = "La ruta debe comenzar con materiales/ o paquetes/.";
-    return;
-  }
-  $("#upload-message").textContent = "";
-  $("#upload-progress").classList.remove("hidden");
-  const bar = $("#upload-progress span");
-  const task = uploadBytesResumable(ref(storage, path), file, { contentType: file.type || "application/octet-stream" });
-  task.on("state_changed",
-    (snapshot) => { bar.style.width = `${Math.round(snapshot.bytesTransferred / snapshot.totalBytes * 100)}%`; },
-    (error) => {
-      console.error(error);
-      $("#upload-message").textContent = "No se pudo subir. Revisa la ruta y las reglas de Storage.";
-    },
-    () => {
-      $("#upload-message").textContent = "Archivo subido correctamente.";
-      $("#upload-form").reset();
-      showToast("Material guardado en Firebase Storage.");
-    }
-  );
 });
 
 onAuthStateChanged(auth, async (user) => {
@@ -158,6 +171,17 @@ onAuthStateChanged(auth, async (user) => {
   if (user.uid !== ADMIN_UID) {
     showOnly("#admin-denied");
     return;
+  }
+  const ownerRef = ref(db, `users/${ADMIN_UID}`);
+  const ownerSnapshot = await get(ownerRef);
+  if (!ownerSnapshot.exists()) {
+    await update(ownerRef, {
+      name: user.displayName || "Administradora",
+      email: user.email || "",
+      active: true,
+      createdAt: Date.now(),
+      libraryUrl: ""
+    });
   }
   $("#admin-user-email").textContent = user.email || "Cuenta propietaria";
   showOnly("#admin-dashboard");

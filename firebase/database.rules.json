@@ -1,0 +1,32 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "users": {
+      ".read": "auth != null && auth.uid === '0n3g5r70aOYAMBwfza4f0uwcrQr2'",
+      "$userId": {
+        ".read": "auth != null && (auth.uid === $userId || auth.uid === '0n3g5r70aOYAMBwfza4f0uwcrQr2')",
+        ".write": "auth != null && (auth.uid === '0n3g5r70aOYAMBwfza4f0uwcrQr2' || (auth.uid === $userId && !data.exists()))",
+        ".validate": "newData.hasChildren(['name', 'email', 'active']) && (auth.uid === '0n3g5r70aOYAMBwfza4f0uwcrQr2' || (newData.child('email').val() === auth.token.email && newData.child('active').val() === false))",
+        "name": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+        },
+        "email": {
+          ".validate": "newData.isString() && newData.val().length <= 254"
+        },
+        "active": {
+          ".validate": "newData.isBoolean()"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "libraryUrl": {
+          ".validate": "newData.isString() && newData.val().length <= 2000"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}

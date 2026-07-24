@@ -70,29 +70,18 @@
           <div id="users-list" class="users-list"></div>
         </section>
 
-        <section class="admin-panel upload-panel">
-          <span class="eyebrow">Biblioteca</span>
-          <h2>Subir o reemplazar archivo</h2>
-          <p>Usa exactamente la ruta indicada en el catálogo. Si ya existe un archivo con ese nombre, será reemplazado.</p>
-          <form id="upload-form">
-            <label>Ruta en Firebase Storage
-              <input id="storage-path" type="text" required placeholder="materiales/fase-3/01-planeacion.docx">
-            </label>
-            <label>Archivo Word o ZIP
-              <input id="material-file" type="file" required accept=".doc,.docx,.zip,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/zip">
-            </label>
-            <button class="button button-primary full" type="submit">Subir material</button>
-          </form>
-          <div id="upload-progress" class="upload-progress hidden"><span></span></div>
-          <p id="upload-message" class="form-message"></p>
-          <div class="path-help">
-            <strong>Carpetas principales</strong>
-            <code>paquetes/</code>
-            <code>materiales/fase-3/</code>
-            <code>materiales/fase-4/</code>
-            <code>materiales/fase-5/</code>
-            <code>materiales/universales/</code>
-          </div>
+        <section class="admin-panel drive-panel">
+          <span class="eyebrow">Biblioteca en Drive</span>
+          <h2>Entrega privada y gratuita</h2>
+          <p>Los archivos permanecen en Google Drive. Antes de activar una cuenta, comparte su carpeta solamente con el correo de la compradora.</p>
+          <ol class="drive-steps">
+            <li><span>1</span><p>Crea o duplica una carpeta con los materiales adquiridos.</p></li>
+            <li><span>2</span><p>En Drive, pulsa <strong>Compartir</strong> y agrega el correo registrado.</p></li>
+            <li><span>3</span><p>Conserva el acceso general como <strong>Restringido</strong>.</p></li>
+            <li><span>4</span><p>Copia el enlace, pégalo en la cuenta y pulsa <strong>Guardar enlace</strong>.</p></li>
+            <li><span>5</span><p>Finalmente pulsa <strong>Activar</strong>.</p></li>
+          </ol>
+          <a class="button button-primary full" href="https://drive.google.com/" target="_blank" rel="noopener">Abrir Google Drive</a>
         </section>
       </div>
     </section>

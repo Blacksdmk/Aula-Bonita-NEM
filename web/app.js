@@ -9,17 +9,12 @@ import {
   updateProfile
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
-  doc,
-  getDoc,
-  getFirestore,
+  get,
+  getDatabase,
+  ref,
   serverTimestamp,
-  setDoc
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-import {
-  getBytes,
-  getStorage,
-  ref
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
+  set
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 const ADMIN_UID = "0n3g5r70aOYAMBwfza4f0uwcrQr2";
@@ -85,11 +80,11 @@ catalogs.unshift(
 const configured = firebaseConfig.apiKey !== "REEMPLAZAR";
 const firebaseApp = configured ? initializeApp(firebaseConfig) : null;
 const auth = firebaseApp ? getAuth(firebaseApp) : null;
-const db = firebaseApp ? getFirestore(firebaseApp) : null;
-const storage = firebaseApp ? getStorage(firebaseApp) : null;
+const db = firebaseApp ? getDatabase(firebaseApp) : null;
 
 let currentUser = null;
 let hasAccess = false;
+let libraryUrl = "";
 let activePhase = "all";
 let searchTerm = "";
 
@@ -147,7 +142,7 @@ function renderCatalog() {
         <div class="card-footer">
           <small>Editable</small>
           <button class="download-button ${hasAccess ? "" : "locked"}" data-download="${item.id}">
-            ${hasAccess ? "Descargar" : "🔒 Acceso"}
+            ${hasAccess ? "Abrir carpeta" : "🔒 Acceso"}
           </button>
         </div>
       </article>`;
@@ -165,8 +160,10 @@ function renderSession() {
   banner.classList.toggle("active", hasAccess);
   if (hasAccess) {
     $("#access-title").textContent = "Tu biblioteca está activa";
-    $("#access-message").textContent = "Puedes descargar todos los materiales disponibles.";
-    $("#banner-action").textContent = "Ver catálogo";
+    $("#access-message").textContent = libraryUrl
+      ? "Tu carpeta privada de Google Drive está disponible."
+      : "Tu pago está activo; falta asignar tu carpeta privada.";
+    $("#banner-action").textContent = libraryUrl ? "Abrir mi biblioteca" : "Contactar";
   } else if (currentUser) {
     $("#access-title").textContent = "Tu acceso está pendiente";
     $("#access-message").textContent = "Cuando confirmemos tu pago, las descargas se habilitarán automáticamente.";
@@ -186,37 +183,17 @@ document.querySelectorAll(".whatsapp-link").forEach((link) => {
   link.href = destination;
 });
 
-async function getUserAccess(user) {
-  if (!db || !user) return false;
-  const snap = await getDoc(doc(db, "users", user.uid));
-  if (!snap.exists()) return false;
-  const data = snap.data();
-  return data.active === true && (!data.expiresAt || data.expiresAt.toDate() > new Date());
+async function getUserProfile(user) {
+  if (!db || !user) return null;
+  const snapshot = await get(ref(db, `users/${user.uid}`));
+  return snapshot.exists() ? snapshot.val() : null;
 }
 
-async function downloadMaterial(item) {
+function openLibrary() {
   if (!currentUser) return openAuth("login");
   if (!hasAccess) return showToast("Tu cuenta todavía no tiene acceso a descargas.");
-  try {
-    const button = document.querySelector(`[data-download="${item.id}"]`);
-    if (button) { button.disabled = true; button.textContent = "Preparando…"; }
-    const bytes = await getBytes(ref(storage, item.storagePath));
-    const blob = new Blob([bytes]);
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = item.storagePath.split("/").pop();
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    showToast("Descarga iniciada.");
-  } catch (error) {
-    console.error(error);
-    showToast("No pudimos descargar el archivo. Revisa que esté cargado en Firebase.");
-  } finally {
-    renderCatalog();
-  }
+  if (!libraryUrl) return showToast("Tu carpeta aún no ha sido asignada. Contáctanos por WhatsApp.");
+  window.open(libraryUrl, "_blank", "noopener,noreferrer");
 }
 
 $("#search-input").addEventListener("input", (event) => {
@@ -233,7 +210,7 @@ $("#catalog-grid").addEventListener("click", (event) => {
   const button = event.target.closest("[data-download]");
   if (!button) return;
   const item = catalogs.find((entry) => entry.id === button.dataset.download);
-  if (item) downloadMaterial(item);
+  if (item) openLibrary();
 });
 
 $("#open-login").addEventListener("click", () => openAuth("login"));
@@ -242,9 +219,9 @@ $("#close-dialog").addEventListener("click", () => authDialog.close());
 $("#show-register").addEventListener("click", () => setAuthView("register"));
 $("#show-login").addEventListener("click", () => setAuthView("login"));
 $("#banner-action").addEventListener("click", () => {
-  if (hasAccess) location.hash = "#catalogo";
+  if (hasAccess && libraryUrl) openLibrary();
   else if (!currentUser) openAuth("login");
-  else showToast("Añade aquí tus instrucciones de pago y contacto.");
+  else document.querySelector(".whatsapp-link")?.click();
 });
 $("#logout-button").addEventListener("click", () => signOut(auth));
 
@@ -267,7 +244,7 @@ $("#register-form").addEventListener("submit", async (event) => {
   try {
     const credential = await createUserWithEmailAndPassword(auth, $("#register-email").value.trim(), $("#register-password").value);
     await updateProfile(credential.user, { displayName: $("#register-name").value.trim() });
-    await setDoc(doc(db, "users", credential.user.uid), {
+    await set(ref(db, `users/${credential.user.uid}`), {
       name: $("#register-name").value.trim(),
       email: credential.user.email,
       active: false,
@@ -296,7 +273,9 @@ $("#forgot-password").addEventListener("click", async () => {
 if (auth) {
   onAuthStateChanged(auth, async (user) => {
     currentUser = user;
-    hasAccess = await getUserAccess(user);
+    const profile = await getUserProfile(user);
+    hasAccess = profile?.active === true;
+    libraryUrl = profile?.libraryUrl || "";
     renderSession();
   });
 } else {
