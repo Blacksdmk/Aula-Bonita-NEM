@@ -1,122 +1,81 @@
 # Aula Bonita NEM
 
-Sitio estático compatible con GitHub Pages. Utiliza Firebase Authentication,
-Firestore y Storage para controlar el acceso a materiales descargables.
+Catálogo privado compatible con GitHub Pages. Utiliza Firebase Authentication,
+Realtime Database y carpetas privadas de Google Drive para evitar la necesidad
+de Firebase Storage.
 
-## Arquitectura de seguridad
+## Arquitectura
 
-- GitHub Pages publica solamente HTML, CSS y JavaScript.
-- Los archivos Word y ZIP no deben subirse a la carpeta `web` ni quedar en un
-  repositorio público.
+- GitHub Pages publica solamente el sitio.
 - Firebase Authentication identifica a cada persona.
-- El documento `users/{uid}` contiene `active: true` cuando el pago fue
-  confirmado.
-- Firebase Storage permite leer archivos solamente si ese campo está activo.
-- La interfaz descarga con `getBytes`; no publica enlaces permanentes con token.
+- Realtime Database guarda perfiles, estado de acceso y enlace de biblioteca.
+- Google Drive almacena los Word y ZIP.
+- Cada carpeta de Drive debe compartirse únicamente con el correo de la
+  compradora y conservar el acceso general como **Restringido**.
+- El UID propietario configurado en las reglas es el único que puede listar
+  cuentas, activar accesos y asignar enlaces.
 
-## 1. Crear y configurar Firebase
+Los archivos comerciales nunca deben subirse al repositorio público.
 
-1. Crea un proyecto en Firebase Console.
+## Configurar Firebase
+
+1. Abre el proyecto `aula-8646a` en Firebase Console.
 2. En Authentication, habilita **Correo electrónico/contraseña**.
-3. Crea Firestore en modo producción.
-4. Habilita Firebase Storage.
-5. Registra una aplicación web y copia su objeto de configuración.
-6. Pega esos valores en `web/firebase-config.js`.
+3. En Realtime Database, abre **Rules**.
+4. Copia el contenido de `firebase/database.rules.json` y publícalo.
+5. En Authentication → Settings → Authorized domains agrega:
+   `blacksdmk.github.io`.
 
-La configuración web de Firebase no es un secreto. La seguridad depende de las
-reglas y de la validación de la cuenta, no de ocultar esa configuración.
-
-## 2. Publicar reglas
-
-Instala Firebase CLI, inicia sesión y ejecuta desde la carpeta `firebase`:
+También puedes publicar las reglas mediante Firebase CLI:
 
 ```bash
+cd firebase
 firebase use --add
-firebase deploy --only firestore:rules,storage
+firebase deploy --only database
 ```
 
-Antes, selecciona el proyecto correcto. No cambies las reglas para permitir
-lectura pública.
+## Flujo de venta
 
-## 3. Configurar CORS de Storage
+1. La compradora crea su cuenta.
+2. Realtime Database crea `users/{uid}` con `active: false`.
+3. Confirma el pago por transferencia bancaria.
+4. En Google Drive crea o duplica una carpeta con los materiales adquiridos.
+5. Comparte la carpeta exclusivamente con el correo registrado.
+6. Conserva **Acceso general → Restringido**.
+7. Abre `/web/admin.html`.
+8. Pega el enlace de la carpeta en la cuenta y pulsa **Guardar enlace**.
+9. Pulsa **Activar**.
 
-Reemplaza `TU-USUARIO` en `firebase/cors.json`. Después aplica el archivo al
-bucket con Google Cloud CLI:
+La compradora podrá abrir su biblioteca después de volver a iniciar sesión o
+recargar la página. Para revocar el acceso pulsa **Suspender** y, si hace falta,
+retira también su permiso en Google Drive.
 
-```bash
-gcloud storage buckets update gs://TU-BUCKET --cors-file=cors.json
-```
-
-Agrega también un dominio personalizado si lo utilizarás.
-
-## 4. Subir los materiales
-
-La aplicación espera estas carpetas:
+## Datos guardados
 
 ```text
-paquetes/
-  Paquete_Fase_3_NEM_Editable.zip
-  Paquete_Fase_4_NEM_Editable.zip
-  Paquete_Fase_5_NEM_Editable.zip
-
-materiales/
-  fase-3/
-  fase-4/
-  fase-5/
-  universales/
+users/
+  UID:
+    name: "Nombre"
+    email: "correo@ejemplo.com"
+    active: false
+    createdAt: 1780000000000
+    libraryUrl: "https://drive.google.com/..."
 ```
 
-Los nombres exactos de cada archivo están definidos en `web/app.js`, propiedad
-`storagePath`. Puedes cambiarlos antes de cargar los documentos.
+Las reglas impiden que una compradora cambie `active` o `libraryUrl`. Sólo puede
+crear su propio perfil inicial inactivo.
 
-## 5. Aprobar un pago
+## Publicar el sitio
 
-Cuando alguien se registra se crea:
+La rama principal debe llamarse `main`. En GitHub:
 
-```text
-users/{uid}
-  name: "Nombre"
-  email: "correo@ejemplo.com"
-  active: false
-```
+1. Abre **Settings → Pages**.
+2. Selecciona **GitHub Actions**.
+3. El flujo `.github/workflows/deploy-pages.yml` publica el sitio.
 
-Después de confirmar el pago:
+## Seguridad
 
-1. Abre Firestore en Firebase Console.
-2. Busca el documento de la persona.
-3. Cambia `active` a `true`.
-
-La persona debe recargar el sitio o volver a iniciar sesión. Para revocar el
-acceso cambia `active` a `false`.
-
-Opcionalmente puedes agregar un campo Timestamp `expiresAt`; el sitio lo toma en
-cuenta para accesos con vencimiento. Para validar también la expiración en
-Storage Rules deberá añadirse esa comparación a las reglas.
-
-## 6. Publicar en GitHub Pages
-
-1. Crea un repositorio en GitHub y sube este proyecto.
-2. Confirma que la rama principal se llame `main`.
-3. En **Settings → Pages**, selecciona **GitHub Actions** como fuente.
-4. El flujo `.github/workflows/deploy-pages.yml` publicará la carpeta `web`.
-5. Agrega el dominio de GitHub Pages a **Authentication → Settings →
-   Authorized domains** en Firebase.
-
-## Personalización pendiente
-
-Busca y reemplaza:
-
-- `Aula Bonita`
-- instrucciones de pago;
-- datos de contacto;
-- aviso de privacidad;
-- términos de licencia;
-- tiempos de activación;
-- condiciones para compartir o imprimir materiales.
-
-## Recomendación comercial
-
-La aprobación manual es adecuada para una primera versión. Si después quieres
-activación automática por pago, utiliza Stripe o Mercado Pago mediante una
-función de servidor o webhook. Nunca pongas una clave secreta de pagos en
-GitHub Pages.
+- No publiques contraseñas, datos bancarios, tokens ni credenciales privadas.
+- No configures Drive como “Cualquier persona con el enlace”.
+- No guardes Word, ZIP o archivos codificados en Realtime Database.
+- Al suspender una cuenta, elimina también su acceso en Google Drive.
